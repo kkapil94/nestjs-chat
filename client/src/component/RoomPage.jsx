@@ -1,19 +1,44 @@
-import React, { useState } from "react";
-import socket from "../socket/socket";
-import { useParams } from "react-router-dom";
+import React, { useContext, useEffect, useState } from "react";
+import { io } from "https://cdn.socket.io/4.7.4/socket.io.esm.min.js";
+import { useNavigate, useParams } from "react-router-dom";
+import { context } from "../context/context";
 
 export default function RoomPage() {
   const [msg, setMsg] = useState("");
   const [receivedMsg, setReceivedMsg] = useState([]);
+  const navigate = useNavigate();
+  const { userData } = useContext(context);
   const { id } = useParams();
-  socket.on("receive-msg", (data) => {
-    setReceivedMsg([...receivedMsg, data]);
-  });
+  const [newSocket, setNewSocket] = useState();
+
   const handleSendMsg = (e) => {
     e.preventDefault();
-    socket.emit("send-msg", msg);
+    newSocket.emit("send-msg", msg);
     setMsg("");
   };
+
+  newSocket?.on("receive-msg", (data) => {
+    setReceivedMsg([...receivedMsg, data]);
+  });
+
+  useEffect(() => {
+    const socket = io("http://localhost:3000");
+    setNewSocket(socket);
+    socket.emit("join-room", userData, (error) => {
+      if (error) {
+        alert(error);
+        navigate("/");
+      }
+    });
+    console.log(socket.id);
+    return () => {
+      socket.disconnect();
+      socket.off("receive-msg", (data) => {
+        setReceivedMsg([...receivedMsg, data]);
+      });
+    };
+  }, [userData, navigate]);
+
   return (
     <>
       <div className="container">

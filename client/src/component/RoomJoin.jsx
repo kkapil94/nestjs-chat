@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import socket from "../socket/socket";
+import { context } from "../context/context";
 
 export default function RoomJoin() {
   const navigate = useNavigate();
-  const [userData, setUserData] = useState({ room: "", username: "" });
+  const { userData, setUserData } = useContext(context);
 
   const handleChange = (e) => {
     setUserData({ ...userData, [e.target.id]: e.target.value });
@@ -12,12 +12,6 @@ export default function RoomJoin() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    socket.emit("join-room", userData, (error) => {
-      if (error) {
-        alert(error);
-        navigate("/");
-      }
-    });
     navigate(`/room/${userData.room}`);
   };
 

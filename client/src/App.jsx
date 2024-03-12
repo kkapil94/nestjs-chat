@@ -1,10 +1,13 @@
 import { Outlet, createBrowserRouter } from "react-router-dom";
 import RoomJoin from "./component/RoomJoin";
 import RoomPage from "./component/RoomPage";
+import ContextProvider from "./context/context";
 
 const AppLayout = () => (
   <>
-    <Outlet />
+    <ContextProvider>
+      <Outlet />
+    </ContextProvider>
   </>
 );
 

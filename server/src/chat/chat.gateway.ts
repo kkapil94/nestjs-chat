@@ -6,7 +6,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { addUser, getUser } from '../utils/user';
+import { addUser, getUser, removeUser } from '../utils/user';
 
 @WebSocketGateway({ cors: true })
 export class ChatGateway {
@@ -36,8 +36,17 @@ export class ChatGateway {
     @ConnectedSocket() socket: Socket,
   ) {
     const user = getUser(socket.id);
-    console.log(user);
+    this.io.to(user?.room).emit('receive-msg', { msg, user });
+  }
 
-    this.io.to(user.room).emit('receive-msg', { msg, user });
+  @SubscribeMessage('disconnect')
+  handleDisconnect(@ConnectedSocket() socket: Socket) {
+    console.log(socket.id);
+
+    const user = removeUser(socket.id);
+    this.io.to(user?.room).emit('receive-msg', {
+      msg: `${user?.username} has left the room`,
+      user: { username: 'admin' },
+    });
   }
 }
